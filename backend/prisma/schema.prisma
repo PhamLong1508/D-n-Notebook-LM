@@ -25,14 +25,55 @@ model User {
   password  String
   role      Role     @default(user)
   createdAt DateTime @default(now())
-  notes     Note[]
+  notebooks Notebook[]
+}
+
+model Notebook {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  notes       Note[]
+  sources     Source[]
 }
 
 model Note {
-  id        Int      @id @default(autoincrement())
-  title     String
-  body      String
-  createdAt DateTime @default(now())
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
+  id         Int      @id @default(autoincrement())
+  title      String
+  content    String   @db.Text
+  type       NoteType @default(text)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  notebookId Int
+  notebook   Notebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  sources    Source[]
+}
+
+model Source {
+  id         Int        @id @default(autoincrement())
+  title      String
+  content    String     @db.Text
+  url        String?
+  type       SourceType
+  createdAt  DateTime   @default(now())
+  notebookId Int
+  notebook   Notebook   @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  notes      Note[]
+}
+
+enum NoteType {
+  text
+  summary
+  outline
+  qa
+}
+
+enum SourceType {
+  document
+  webpage
+  pdf
+  text
 }

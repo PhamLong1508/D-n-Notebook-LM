@@ -1,9 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const { PrismaClient } = require('../generated/prisma');
-const mysql = require('mysql2');
-const ollama = require('ollama');
+const { PrismaClient } = require('./generated/prisma');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -15,43 +13,10 @@ app.use(express.json());
 
 const prisma = new PrismaClient();
 
-// MySQL connection test (optional, Prisma is main ORM)
-const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'user',
-  password: 'password',
-  database: 'dbname',
-});
-db.connect(err => {
-  if (err) console.log('MySQL connection error:', err.message);
-  else console.log('MySQL connected!');
-});
-
-// Sample API: Get all notes
-app.get('/api/notes', async (req, res) => {
-  try {
-    const notes = await prisma.note.findMany();
-    res.json(notes);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Sample API: Chat with Ollama
-app.post('/api/ollama', async (req, res) => {
-  try {
-    const { prompt } = req.body;
-    const response = await ollama.chat({
-      model: 'llama3',
-      messages: [{ role: 'user', content: prompt }],
-    });
-    res.json({ result: response.message.content });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_key';
+
+// Import middlewares
+const { auth, authOptional } = require('./middlewares/auth');
 
 // Đăng ký
 app.post('/api/register', authOptional, async (req, res) => {
@@ -91,57 +56,24 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Middleware xác thực tùy chọn (cho phép req.userId nếu có token)
-function authOptional(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    const token = authHeader.split(' ')[1];
-    try {
-      const payload = jwt.verify(token, JWT_SECRET);
-      req.userId = payload.userId;
-    } catch {}
-  }
-  next();
-}
-
-// Middleware kiểm tra quyền admin
-function requireAdmin(req, res, next) {
-  prisma.user.findUnique({ where: { id: req.userId } })
-    .then(user => {
-      if (!user || user.role !== 'admin') return res.status(403).json({ error: 'Chỉ admin mới được phép' });
-      next();
-    })
-    .catch(() => res.status(500).json({ error: 'Lỗi xác thực admin' }));
-}
-
 // Lấy thông tin user hiện tại
 app.get('/api/user', auth, async (req, res) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id: req.userId }, select: { id: true, username: true, createdAt: true } });
+    const user = await prisma.user.findUnique({
+      where: { id: req.userId },
+      select: { id: true, username: true, role: true, createdAt: true }
+    });
     res.json(user);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Ví dụ logic author: chỉ admin hoặc chính chủ mới được sửa/xóa user
-app.delete('/api/user/:id', auth, async (req, res) => {
-  const { id } = req.params;
-  try {
-    const currentUser = await prisma.user.findUnique({ where: { id: req.userId } });
-    if (!currentUser) return res.status(401).json({ error: 'Không xác thực được user' });
-    if (currentUser.role !== 'admin' && req.userId !== Number(id)) {
-      return res.status(403).json({ error: 'Chỉ admin hoặc chính chủ mới được xóa user' });
-    }
-    await prisma.user.delete({ where: { id: Number(id) } });
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
+// Routes
 app.use('/api', require('./routes/user'));
+app.use('/api', require('./routes/notebook'));
 app.use('/api', require('./routes/note'));
+app.use('/api', require('./routes/source'));
 app.use('/api', require('./routes/ollama'));
 
 const PORT = process.env.PORT || 3001;
