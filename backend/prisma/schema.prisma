@@ -20,24 +20,25 @@ enum Role {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
+  id        Int        @id @default(autoincrement())
+  username  String     @unique
   password  String
-  role      Role     @default(user)
-  createdAt DateTime @default(now())
+  role      Role       @default(user)
+  createdAt DateTime   @default(now())
   notebooks Notebook[]
 }
 
 model Notebook {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id])
-  notes       Note[]
-  sources     Source[]
+  id           Int           @id @default(autoincrement())
+  title        String
+  description  String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  userId       Int
+  user         User          @relation(fields: [userId], references: [id])
+  notes        Note[]
+  sources      Source[]
+  chatSessions ChatSession[]
 }
 
 model Note {
@@ -53,15 +54,37 @@ model Note {
 }
 
 model Source {
-  id         Int        @id @default(autoincrement())
-  title      String
-  content    String     @db.Text
-  url        String?
-  type       SourceType
-  createdAt  DateTime   @default(now())
+  id             Int        @id @default(autoincrement())
+  title          String
+  content        String     @db.Text
+  url            String?
+  type           SourceType
+  fileName       String?
+  storedFileName String?
+  fileSize       Int?
+  createdAt      DateTime   @default(now())
+  notebookId     Int
+  notebook       Notebook   @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  notes          Note[]
+}
+
+model ChatSession {
+  id         Int           @id @default(autoincrement())
+  title      String        @default("Chat Session")
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
   notebookId Int
-  notebook   Notebook   @relation(fields: [notebookId], references: [id], onDelete: Cascade)
-  notes      Note[]
+  notebook   Notebook      @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  messages   ChatMessage[]
+}
+
+model ChatMessage {
+  id            Int         @id @default(autoincrement())
+  role          MessageRole
+  content       String      @db.Text
+  createdAt     DateTime    @default(now())
+  chatSessionId Int
+  chatSession   ChatSession @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
 }
 
 enum NoteType {
@@ -76,4 +99,10 @@ enum SourceType {
   webpage
   pdf
   text
+}
+
+enum MessageRole {
+  user
+  assistant
+  system
 }

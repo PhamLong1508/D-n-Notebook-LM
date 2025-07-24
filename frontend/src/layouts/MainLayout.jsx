@@ -75,9 +75,9 @@ export default function MainLayout() {
   ];
 
   return (
-    <div className="flex min-h-screen w-screen bg-gray-50">
+    <div className="flex min-h-screen w-screen bg-gray-50 pt-10">
       {/* Sidebar */}
-      <aside className="w-20 md:w-64 bg-white border-r border-gray-200 flex flex-col shadow-sm">
+      <aside className="w-20 md:w-64 h-[95vh] bg-white border-r border-gray-200 flex flex-col shadow-sm">
         {/* Logo */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
@@ -133,7 +133,7 @@ export default function MainLayout() {
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col px-4">
         {/* Header */}
         <header className="h-16 bg-white flex items-center justify-between px-6 border-b border-gray-200 shadow-sm">
           <div className="flex items-center gap-6">
@@ -187,8 +187,10 @@ export default function MainLayout() {
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-auto ">
-          <Outlet />
+        <main className="flex-1 overflow-auto px-4">
+         <div className="h-[95vh] py-2" >
+           <Outlet />
+         </div>
         </main>
       </div>
     </div>
