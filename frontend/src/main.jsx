@@ -5,13 +5,16 @@ import { ConfigProvider, App } from "antd";
 import "antd/dist/reset.css";
 import "./index.css";
 import AppComponent from "./App.jsx";
+import { NotebookProvider } from "./contexts/NotebookContext";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <ConfigProvider>
       <App>
         <BrowserRouter>
-          <AppComponent />
+          <NotebookProvider>
+            <AppComponent />
+          </NotebookProvider>
         </BrowserRouter>
       </App>
     </ConfigProvider>

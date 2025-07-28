@@ -9,7 +9,7 @@ const callOllama = async (messages, options = {}) => {
     const healthCheck = await fetch('http://127.0.0.1:11434/api/tags', {
       timeout: 5000 // 5 second timeout
     });
-    
+
     if (!healthCheck.ok) {
       throw new Error('Ollama server is not responding');
     }
@@ -17,10 +17,10 @@ const callOllama = async (messages, options = {}) => {
     // Check if model is available
     const tagsData = await healthCheck.json();
     console.log(tagsData);
-    const hasLlama3 = tagsData.models.some(model => model.name.includes('llama3:latest'));
-    
+    const hasLlama3 = tagsData.models.some(model => model.name.includes('gemma2:9b'));
+
     if (!hasLlama3) {
-      throw new Error('Model llama3 chưa được cài đặt. Chạy lệnh: ollama pull llama3');
+      throw new Error('Model gemma2 chưa được cài đặt. Chạy lệnh: ollama pull gemma2');
     }
 
     const response = await fetch('http://127.0.0.1:11434/api/chat', {
@@ -29,7 +29,7 @@ const callOllama = async (messages, options = {}) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama3',
+        model: 'gemma2:9b',
         messages,
         stream: false,
         options: {
@@ -38,7 +38,7 @@ const callOllama = async (messages, options = {}) => {
           ...options
         }
       }),
- // 30 second timeout for chat
+      // 30 second timeout for chat
     });
 
     if (!response.ok) {
@@ -51,15 +51,15 @@ const callOllama = async (messages, options = {}) => {
     return data.message.content;
   } catch (error) {
     console.error('Ollama API call failed:', error);
-    
+
     if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
       throw new Error('Ollama service không chạy. Vui lòng khởi động bằng lệnh: ollama serve');
     }
-    
+
     if (error.name === 'FetchError' && error.type === 'request-timeout') {
       throw new Error('Ollama phản hồi quá chậm. Vui lòng thử lại.');
     }
-    
+
     throw new Error(`Lỗi AI: ${error.message}`);
   }
 };
@@ -89,8 +89,8 @@ exports.chatWithNotebook = async (req, res) => {
     let chatSession;
     if (sessionId) {
       chatSession = await prisma.chatSession.findFirst({
-        where: { 
-          id: Number(sessionId), 
+        where: {
+          id: Number(sessionId),
           notebookId: Number(notebookId)
         },
         include: {
@@ -154,9 +154,9 @@ Hãy trả lời dựa trên kiến thức đã được training và nhớ lạ
 
     // Tạo messages bao gồm training context và lịch sử
     const messages = [
-      { 
-        role: 'system', 
-        content: `${systemPrompt}\n\n${trainingContext}\n\nHãy nhớ toàn bộ thông tin trên và sử dụng để trả lời các câu hỏi tiếp theo. Bạn có thể tham khảo lại lịch sử trò chuyện để hiểu context tốt hơn.` 
+      {
+        role: 'system',
+        content: `${systemPrompt}\n\n${trainingContext}\n\nHãy nhớ toàn bộ thông tin trên và sử dụng để trả lời các câu hỏi tiếp theo. Bạn có thể tham khảo lại lịch sử trò chuyện để hiểu context tốt hơn.`
       },
       // Thêm lịch sử trò chuyện
       ...chatSession.messages.map(msg => ({
@@ -168,6 +168,7 @@ Hãy trả lời dựa trên kiến thức đã được training và nhớ lạ
     ];
 
     const aiResponse = await callOllama(messages);
+    const processedAiResponse = aiResponse.replace(/\*\*/g, '\n');
 
     // Lưu user message và AI response vào database
     await prisma.chatMessage.createMany({
@@ -179,14 +180,14 @@ Hãy trả lời dựa trên kiến thức đã được training và nhớ lạ
         },
         {
           role: 'assistant',
-          content: aiResponse,
+          content: processedAiResponse,
           chatSessionId: chatSession.id
         }
       ]
     });
 
     res.json({
-      result: aiResponse,
+      result: processedAiResponse,
       type,
       sessionId: chatSession.id,
       notebook: {
@@ -246,6 +247,18 @@ exports.generateNote = async (req, res) => {
         systemPrompt = 'Bạn là một trợ lý AI chuyên tạo câu hỏi và trả lời. Hãy tạo các câu hỏi quan trọng và câu trả lời tương ứng từ các nguồn tài liệu được cung cấp.';
         noteTitle = 'Q&A - ' + new Date().toLocaleDateString('vi-VN');
         break;
+      case 'guide':
+        systemPrompt = 'Bạn là một trợ lý AI chuyên tạo hướng dẫn. Hãy tạo một hướng dẫn chi tiết, từng bước dựa trên các nguồn tài liệu được cung cấp.';
+        noteTitle = 'Hướng dẫn - ' + new Date().toLocaleDateString('vi-VN');
+        break;
+      case 'timeline':
+        systemPrompt = 'Bạn là một trợ lý AI chuyên tạo dòng thời gian. Hãy tạo một dòng thời gian các sự kiện quan trọng dựa trên các nguồn tài liệu được cung cấp.';
+        noteTitle = 'Dòng thời gian - ' + new Date().toLocaleDateString('vi-VN');
+        break;
+      case 'faq':
+        systemPrompt = 'Bạn là một trợ lý AI chuyên tạo câu hỏi thường gặp. Hãy tạo một danh sách các câu hỏi thường gặp và câu trả lời của chúng dựa trên các nguồn tài liệu được cung cấp.';
+        noteTitle = 'FAQ - ' + new Date().toLocaleDateString('vi-VN');
+        break;
       default:
         systemPrompt = 'Bạn là một trợ lý AI thông minh. Hãy xử lý yêu cầu dựa trên context được cung cấp.';
         noteTitle = 'Ghi chú AI - ' + new Date().toLocaleDateString('vi-VN');
@@ -257,12 +270,13 @@ exports.generateNote = async (req, res) => {
     ];
 
     const aiResponse = await callOllama(messages);
+    const processedAiResponse = aiResponse.replace(/\*\*/g, '\n');
 
     // Tạo note từ AI response
     const note = await prisma.note.create({
       data: {
         title: noteTitle,
-        content: aiResponse,
+        content: processedAiResponse,
         type,
         notebookId: Number(notebookId)
       }
@@ -331,7 +345,7 @@ exports.getChatSession = async (req, res) => {
     if (!notebook) return res.status(404).json({ error: 'Không tìm thấy notebook' });
 
     const session = await prisma.chatSession.findFirst({
-      where: { 
+      where: {
         id: Number(sessionId),
         notebookId: Number(notebookId)
       },
@@ -364,7 +378,7 @@ exports.deleteChatSession = async (req, res) => {
     if (!notebook) return res.status(404).json({ error: 'Không tìm thấy notebook' });
 
     const session = await prisma.chatSession.findFirst({
-      where: { 
+      where: {
         id: Number(sessionId),
         notebookId: Number(notebookId)
       }
