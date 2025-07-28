@@ -25,6 +25,7 @@ import {
   EyeOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { useContextMenu } from "../contexts/ContextPanelContext";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -36,9 +37,13 @@ export default function NotebooksPage() {
   const [editingNotebook, setEditingNotebook] = useState(null);
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const { showContext, hideContext } = useContextMenu();
 
   useEffect(() => {
     fetchNotebooks();
+    return () => {
+      hideContext();
+    };
   }, []);
 
   const fetchNotebooks = async () => {
@@ -178,6 +183,15 @@ export default function NotebooksPage() {
     },
   ];
 
+  const handleCardClick = (notebook) => {
+    showContext(
+      <div>
+        <Title level={4}>{notebook.title}</Title>
+        <Text type="secondary">{notebook.description}</Text>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -230,7 +244,8 @@ export default function NotebooksPage() {
             <Col xs={24} sm={12} lg={8} xl={6} key={notebook.id}>
               <Card
                 hoverable
-                className="h-full transition-all duration-200 hover:shadow-lg"
+                className="h-full transition-all duration-200 hover:shadow-lg cursor-pointer"
+                onClick={() => handleCardClick(notebook)}
                 cover={
                   <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 text-center">
                     <Avatar
@@ -244,7 +259,10 @@ export default function NotebooksPage() {
                   <Button
                     type="text"
                     icon={<EyeOutlined />}
-                    onClick={() => navigate(`/notebooks/${notebook.id}`)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Ngăn sự kiện click lan ra Card
+                      navigate(`/notebooks/${notebook.id}`);
+                    }}
                   >
                     Mở
                   </Button>,
@@ -252,7 +270,7 @@ export default function NotebooksPage() {
                     menu={{ items: getDropdownItems(notebook) }}
                     trigger={["click"]}
                   >
-                    <Button type="text" icon={<MoreOutlined />} />
+                     <Button type="text" icon={<MoreOutlined />} onClick={(e) => e.stopPropagation()} />
                   </Dropdown>,
                 ]}
               >

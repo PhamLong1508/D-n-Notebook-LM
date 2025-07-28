@@ -168,9 +168,6 @@ Hãy trả lời dựa trên kiến thức đã được training và nhớ lạ
     ];
 
     const aiResponse = await callOllama(messages);
-    
-    // Loại bỏ "Trả lời:" ở đầu response nếu có
-    const cleanResponse = aiResponse.replace(/^(Trả lời:\s*|Answer:\s*)/i, '').trim();
 
     // Lưu user message và AI response vào database
     await prisma.chatMessage.createMany({
@@ -182,14 +179,14 @@ Hãy trả lời dựa trên kiến thức đã được training và nhớ lạ
         },
         {
           role: 'assistant',
-          content: cleanResponse,
+          content: aiResponse,
           chatSessionId: chatSession.id
         }
       ]
     });
 
     res.json({
-      result: cleanResponse,
+      result: aiResponse,
       type,
       sessionId: chatSession.id,
       notebook: {
