@@ -37,12 +37,12 @@ export default function NotebooksPage() {
   const [editingNotebook, setEditingNotebook] = useState(null);
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  const { showContext, hideContext } = useContextMenu();
+  const { showContext, clearContext } = useContextMenu();
 
   useEffect(() => {
     fetchNotebooks();
     return () => {
-      hideContext();
+      clearContext();
     };
   }, []);
 

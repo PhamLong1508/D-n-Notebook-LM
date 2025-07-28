@@ -367,6 +367,37 @@ export default function NotebookDetailPage() {
     setSessionToDelete(null);
   };
 
+  const handleDeleteNote = async (noteId) => {
+    modal.confirm({
+      title: 'Xác nhận xóa ghi chú',
+      content: 'Bạn có chắc chắn muốn xóa ghi chú này không?',
+      okText: 'Xóa',
+      cancelText: 'Hủy',
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          const token = localStorage.getItem("token");
+          const response = await fetch(`/api/notebooks/${id}/notes/${noteId}`, {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (response.ok) {
+            message.success("Đã xóa ghi chú thành công");
+            fetchNotebook();
+          } else {
+            const errorData = await response.json();
+            message.error("Không thể xóa ghi chú: " + (errorData.error || "Unknown error"));
+          }
+        } catch (error) {
+          message.error("Lỗi khi xóa ghi chú");
+        }
+      },
+    });
+  };
+
   const deleteChatSession = async (sessionId) => {
     try {
       const token = localStorage.getItem("token");
@@ -680,6 +711,7 @@ export default function NotebookDetailPage() {
                       icon={<DeleteOutlined />}
                       danger
                       size="small"
+                      onClick={() => handleDeleteNote(note.id)}
                     />,
                   ]}
                 >
