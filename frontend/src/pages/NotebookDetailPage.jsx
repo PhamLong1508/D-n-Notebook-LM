@@ -22,7 +22,7 @@ import {
   Divider,
   App,
 } from "antd";
-import DOMPurify from "dompurify";
+import remarkGfm from "remark-gfm";
 
 import { useContextMenu } from "../contexts/ContextPanelContext";
 import { useNotebook } from "../contexts/NotebookContext";
@@ -781,12 +781,7 @@ export default function NotebookDetailPage() {
                     avatar={<Avatar icon={getNoteTypeIcon(note.type)} />}
                     title={note.title}
                     description={
-                      <div
-                        className="prose line-clamp-3"
-                        dangerouslySetInnerHTML={{
-                          __html: DOMPurify.sanitize(note.content),
-                        }}
-                      />
+                      <div className="prose line-clamp-3">{note.content}</div>
                     }
                   />
                 </Card>
@@ -800,7 +795,7 @@ export default function NotebookDetailPage() {
       key: "chat",
       label: "Chat với AI",
       children: (
-        <div className="flex gap-4 h-96">
+        <div className="flex gap-4 h-[600px]">
           {/* Chat Sessions Sidebar */}
           <div className="w-64 border-r pr-4">
             <div className="flex justify-between items-center mb-4">
@@ -876,7 +871,7 @@ export default function NotebookDetailPage() {
 
           {/* Chat Area */}
           <div className="flex-1 flex flex-col">
-            <div className="flex-1 bg-gray-50 rounded-lg p-4 mb-4 overflow-y-auto">
+            <div className="flex-1 bg-gray-50 rounded-lg p-4 mb-4  overflow-y-auto">
               {chatMessages.length === 0 ? (
                 <Empty
                   image={

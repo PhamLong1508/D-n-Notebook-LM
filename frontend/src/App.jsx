@@ -7,6 +7,8 @@ import RegisterPage from "./pages/RegisterPage";
 import HomePage from "./pages/HomePage";
 import NotebooksPage from "./pages/NotebooksPage";
 import NotebookDetailPage from "./pages/NotebookDetailPage";
+import AdminPage from "./pages/AdminPage";
+import ProfilePage from "./pages/ProfilePage";
 import "./App.css";
 
 function App() {
@@ -21,6 +23,8 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/notebooks" element={<NotebooksPage />} />
           <Route path="/notebooks/:id" element={<NotebookDetailPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           {/* Backward compatibility */}
           <Route path="/notes" element={<Navigate to="/notebooks" />} />
         </Route>

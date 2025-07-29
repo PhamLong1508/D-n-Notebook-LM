@@ -1,6 +1,7 @@
 
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import { Markdown } from 'tiptap-markdown';
 import {
   BoldOutlined,
   ItalicOutlined,
@@ -99,10 +100,10 @@ const MenuBar = ({ editor }) => {
 
 export default function RichTextEditor({ value, onChange }) {
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [StarterKit, Markdown],
     content: value,
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
+      onChange(editor.storage.markdown.getMarkdown());
     },
   });
 

@@ -14,6 +14,7 @@ import {
   message,
   Empty,
   Spin,
+  App,
 } from "antd";
 import {
   PlusOutlined,
@@ -38,6 +39,7 @@ export default function NotebooksPage() {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const { showContext, clearContext } = useContextMenu();
+  const { modal } = App.useApp();
 
   useEffect(() => {
     fetchNotebooks();
@@ -266,12 +268,32 @@ export default function NotebooksPage() {
                   >
                     Mở
                   </Button>,
-                  <Dropdown
-                    menu={{ items: getDropdownItems(notebook) }}
-                    trigger={["click"]}
+
+                  <Button
+                    type="text"
+                    icon={<EditOutlined />}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEditModal(notebook);
+                    }}
                   >
-                     <Button type="text" icon={<MoreOutlined />} onClick={(e) => e.stopPropagation()} />
-                  </Dropdown>,
+                    Sửa
+                  </Button>,
+                  <Button
+                    type="text"
+                    icon={<DeleteOutlined />}
+                    danger
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      modal.confirm({
+                        title: "Xác nhận xóa",
+                        content: `Bạn có chắc muốn xóa notebook "${notebook.title}"?`,
+                        onOk: () => handleDeleteNotebook(notebook.id),
+                      });
+                    }}
+                  >
+                    Xóa
+                  </Button>,
                 ]}
               >
                 <Card.Meta

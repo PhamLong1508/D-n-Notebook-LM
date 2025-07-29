@@ -4,6 +4,9 @@ import {
   BookOpenIcon,
   HomeIcon,
   ArrowLeftOnRectangleIcon,
+  Cog6ToothIcon,
+  PowerIcon,
+  ArrowRightOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import { useState, useEffect } from "react";
 import { useContextMenu } from "../contexts/ContextPanelContext";
@@ -19,13 +22,14 @@ import {
 } from "@ant-design/icons";
 import { useNotebook } from "../contexts/NotebookContext";
 
-const menu = [
+const menuItems = [
   { key: "/", icon: <HomeIcon className="w-6 h-6" />, label: "Trang chủ" },
   {
     key: "/notebooks",
     icon: <BookOpenIcon className="w-6 h-6" />,
     label: "Notebooks",
   },
+  { key: "/profile", icon: <UserIcon className="w-6 h-6" />, label: "Hồ sơ" },
 ];
 
 export default function MainLayout() {
@@ -42,6 +46,18 @@ export default function MainLayout() {
     openNoteModal,
     fetchNotebook,
   } = useNotebook();
+
+  const menu =
+    user?.role === "admin"
+      ? [
+          ...menuItems,
+          {
+            key: "/admin",
+            icon: <Cog6ToothIcon className="w-6 h-6" />,
+            label: "Admin",
+          },
+        ]
+      : menuItems;
 
   const handleGenerateNote = async (values) => {
     if (!notebookId || !notebookSources.length) {
@@ -191,7 +207,7 @@ export default function MainLayout() {
                 onClick={handleLogout}
                 className="p-2 rounded-md hover:bg-gray-100 text-gray-500 hover:text-gray-700"
               >
-                <ArrowLeftOnRectangleIcon className="w-6 h-6" />
+                <PowerIcon className="w-6 h-6 text-red-500" />
               </button>
             </div>
           )}
