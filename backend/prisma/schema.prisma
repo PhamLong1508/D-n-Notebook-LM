@@ -51,6 +51,7 @@ model Note {
   notebookId Int
   notebook   Notebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
   sources    Source[]
+  isPublic   Boolean  @default(false)
 }
 
 model Source {

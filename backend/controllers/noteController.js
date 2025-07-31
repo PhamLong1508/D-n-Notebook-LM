@@ -113,3 +113,66 @@ exports.deleteNote = async function (req, res) {
     res.status(500).json({ error: err.message });
   }
 }; 
+
+// Lấy note theo id
+exports.getNoteById = async function (req, res) {
+    try {
+        const { notebookId, noteId } = req.params;
+
+        const note = await prisma.note.findFirst({
+            where: { id: Number(noteId), notebookId: Number(notebookId) },
+            include: { notebook: true } // Include notebook to check userId
+        });
+
+        if (!note) {
+            return res.status(404).json({ error: 'Không tìm thấy note' });
+        }
+
+        // If the note is public, allow access
+        if (note.isPublic) {
+            return res.json(note);
+        }
+
+        // If the note is private, check if the requesting user owns the notebook
+        if (!note.notebook || note.notebook.userId !== req.userId) {
+            return res.status(403).json({ error: 'Bạn không có quyền truy cập ghi chú này' });
+        }
+
+        res.json(note);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+exports.toggleNotePublicStatus = async function (req, res) {
+    try {
+        const { notebookId, noteId } = req.params;
+
+        // Verify notebook ownership
+        const notebook = await prisma.notebook.findFirst({
+            where: { id: Number(notebookId), userId: req.userId }
+        });
+
+        if (!notebook) {
+            return res.status(404).json({ error: 'Không tìm thấy notebook' });
+        }
+
+        // Verify note ownership within the notebook
+        const note = await prisma.note.findFirst({
+            where: { id: Number(noteId), notebookId: Number(notebookId) }
+        });
+
+        if (!note) {
+            return res.status(404).json({ error: 'Không tìm thấy note' });
+        }
+
+        const updatedNote = await prisma.note.update({
+            where: { id: Number(noteId) },
+            data: { isPublic: !note.isPublic }
+        });
+
+        res.json(updatedNote);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+}; 

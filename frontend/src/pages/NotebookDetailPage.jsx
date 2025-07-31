@@ -44,6 +44,7 @@ import {
   GlobalOutlined,
   DeleteOutlined,
   EditOutlined,
+  EyeOutlined,
   MoreOutlined,
   RobotOutlined,
   UploadOutlined,
@@ -762,6 +763,12 @@ export default function NotebookDetailPage() {
                   key={note.id}
                   hoverable
                   actions={[
+                    <Tooltip title="Xem chi tiết">
+                      <EyeOutlined
+                        key="view"
+                        onClick={() => navigate(`/notebooks/${id}/notes/${note.id}`)}
+                      />
+                    </Tooltip>,
                     <Tooltip title="Chỉnh sửa">
                       <EditOutlined
                         key="edit"

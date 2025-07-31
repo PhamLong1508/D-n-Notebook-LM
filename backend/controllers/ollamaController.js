@@ -168,7 +168,7 @@ Hãy trả lời dựa trên kiến thức đã được training và nhớ lạ
     ];
 
     const aiResponse = await callOllama(messages);
-    const processedAiResponse = aiResponse.replace(/\*\*/g, '\n');
+    // const processedAiResponse = aiResponse.replace(/\*\*/g, '\n');
 
     // Lưu user message và AI response vào database
     await prisma.chatMessage.createMany({
@@ -180,7 +180,7 @@ Hãy trả lời dựa trên kiến thức đã được training và nhớ lạ
         },
         {
           role: 'assistant',
-          content: processedAiResponse,
+          content: aiResponse,
           chatSessionId: chatSession.id
         }
       ]
@@ -270,13 +270,13 @@ exports.generateNote = async (req, res) => {
     ];
 
     const aiResponse = await callOllama(messages);
-    const processedAiResponse = aiResponse.replace(/\*\*/g, '\n');
+    // const processedAiResponse = aiResponse.replace(/\*\*/g, '\n');
 
     // Tạo note từ AI response
     const note = await prisma.note.create({
       data: {
         title: noteTitle,
-        content: processedAiResponse,
+        content: aiResponse,
         type,
         notebookId: Number(notebookId)
       }

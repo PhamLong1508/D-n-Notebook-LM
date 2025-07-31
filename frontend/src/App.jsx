@@ -7,6 +7,7 @@ import RegisterPage from "./pages/RegisterPage";
 import HomePage from "./pages/HomePage";
 import NotebooksPage from "./pages/NotebooksPage";
 import NotebookDetailPage from "./pages/NotebookDetailPage";
+import NoteDetailPage from "./pages/NoteDetailPage";
 import AdminPage from "./pages/AdminPage";
 import ProfilePage from "./pages/ProfilePage";
 import "./App.css";
@@ -23,6 +24,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/notebooks" element={<NotebooksPage />} />
           <Route path="/notebooks/:id" element={<NotebookDetailPage />} />
+          <Route path="/notebooks/:notebookId/notes/:noteId" element={<NoteDetailPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           {/* Backward compatibility */}
