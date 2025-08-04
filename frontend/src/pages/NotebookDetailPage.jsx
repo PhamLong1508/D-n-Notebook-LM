@@ -23,6 +23,7 @@ import {
   App,
 } from "antd";
 import remarkGfm from "remark-gfm";
+import ReactMarkdown from "react-markdown";
 
 import { useContextMenu } from "../contexts/ContextPanelContext";
 import { useNotebook } from "../contexts/NotebookContext";
@@ -67,6 +68,7 @@ export default function NotebookDetailPage() {
     setNotebookId,
     setNotebookSources,
     setChatLoading,
+    chatLoading,
     setOpenNoteModal,
     setFetchNotebook,
   } = useNotebook();
@@ -766,7 +768,9 @@ export default function NotebookDetailPage() {
                     <Tooltip title="Xem chi tiết">
                       <EyeOutlined
                         key="view"
-                        onClick={() => navigate(`/notebooks/${id}/notes/${note.id}`)}
+                        onClick={() =>
+                          navigate(`/notebooks/${id}/notes/${note.id}`)
+                        }
                       />
                     </Tooltip>,
                     <Tooltip title="Chỉnh sửa">
@@ -919,7 +923,9 @@ export default function NotebookDetailPage() {
                           }`}
                         >
                           <div className="whitespace-pre-wrap">
-                            {msg.content}
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {msg.content}
+                            </ReactMarkdown>
                           </div>
                           {msg.role === "assistant" && (
                             <Button
@@ -950,11 +956,15 @@ export default function NotebookDetailPage() {
                 <Input.Search
                   placeholder="Hỏi AI về nội dung notebook..."
                   enterButton={
-                    <Button type="primary" icon={<SendOutlined />}>
+                    <Button
+                      loading={chatLoading}
+                      type="primary"
+                      icon={<SendOutlined />}
+                    >
                       Gửi
                     </Button>
                   }
-                  disabled={!notebook.sources?.length}
+                  disabled={!notebook.sources?.length || chatLoading}
                   size="large"
                   onSearch={() => {
                     const values = chatForm.getFieldsValue();

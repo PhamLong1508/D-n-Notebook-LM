@@ -187,7 +187,7 @@ Hãy trả lời dựa trên kiến thức đã được training và nhớ lạ
     });
 
     res.json({
-      result: processedAiResponse,
+      result: aiResponse,
       type,
       sessionId: chatSession.id,
       notebook: {
